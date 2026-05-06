@@ -1,0 +1,181 @@
+# Игра крестики - нолики Игра для 2 пользователей.
+# Размер игрового поля задается в переменной cnt_cell = 3.
+# В случае потребности завершить игру (согласиться на НИЧЬЮ) - необходжимо ввести 0 (любой игрок, ход, в столбец или строку).
+
+def print_curr_state(sh_pole, cnt_cell, str_out='Текущее состояние:'):
+    """
+    отображение текущего состояния игрового поля
+    : param sh_pole: текущее состояние игрового поля
+    : param cnt_cell: количество ячеек в строке/столбце,
+    : param str_out: строка для назввания поля
+    """
+    print(str_out)
+    print(f' ', end = '\t')
+    for i in range(0, cnt_cell): #индексация столбцов
+        print(f'{i+1}', end='\t')
+    print('')
+    for s in range(0, cnt_cell): #итерация по строкам
+        print(f'{s+1}', end='\t')
+        for i in range(0, cnt_cell): #итерация по столбцам
+            print(f'{sh_pole[s][i]}', end='\t')
+        print('')
+
+def check_value(val, cnt_cell):
+    """
+    Проверяет корректность введенного пользователем значения номера строки/столбца
+    : param val: введенное пользователем значение
+    : param cnt_cell: количество ячеек в строке/столбце
+    : return: 0-выход из игры, -1-введено не число, -2-введено число больше возможного, иначе индекс строки/столбца
+    """
+    if not str.isdigit(val):
+        return -1 #введенная строка не число
+    cur_val = int(val)
+    if cur_val == 0:
+        return 0 #выход из игры
+    if cur_val >= 1 and cur_val <= cnt_cell:
+        return cur_val #введенное значение
+    else:
+        return -2
+
+def input_cell(str_out, cnt_cell):
+    """
+    Обеспечивает ввод пользователем конкретного значения индекса столбца, строки
+    :param str_out: подпись к вводимому значению
+    :param cnt_cell: количество ячеек в строке/столбце
+    :return: если, ячейка введена коректно, ее индекс. иначе - код случая
+    """
+    column = -1
+    while column < 0:
+        column = check_value(input(str_out), cnt_cell)
+        if column == -1:
+            print(f' - НЕ ЧИСЛО !!!')
+        elif column == -2:
+            print(f' - ЧИСЛО БОЛЬШЕ КОЛ-ВА СТРОК и СТОЛБЦОВ ({cnt_cell})')
+        elif column == 0:
+            print(f' - ВЫХОД !!!')
+            break
+    return column
+
+def count_empty(sh_pole, cnt_cell):
+    """
+    Подсчитывает количество ячеек не заполненными игроками
+    :param sh_pole: текущее состояние игрового поля
+    :param cnt_cell: количество ячеек в строке/столбце
+    :return: количество не заполненных игроками ячеек
+    """
+    cnt_cells = 0
+    for s in range(0, cnt_cell): #итерация по строкам
+        for r in range(0, cnt_cell): #итерация по столбцам
+            if sh_pole[s][r] == '-':
+                cnt_cells += 1
+    return cnt_cells
+
+def status_game(sh_pole, cnt_cell, sym_gamers):
+    """
+    Проверяет, что кто-то из игроков победил
+    :param sh_pole: текущее состояние игрового поля
+    :param cnt_cell: количество ячеек в строке/столбце
+    :param sym_gamers: символы, которыми каждый игрок отмечает ячейки
+    :return: индекс победившего игрока (0 или 1), если победителя нет = -1
+    """
+    cnt_line = [0, 0]
+    # проверка финала по столбцам
+    for col in range(0, cnt_cell):
+        cnt_line[0] = 0
+        cnt_line[1] = 0
+        for row in range(0, cnt_cell):
+            if not sh_pole[row][col] == '-':
+                if sh_pole[row][col] == sym_gamers[0]:
+                    cnt_line[0] += 1
+                else:
+                    cnt_line[1] += 1
+        if cnt_line[0] == cnt_cell:
+            return 0
+        elif cnt_line[1] == cnt_cell:
+            return 1
+    # проверка финала по строкам
+    for row in range(0, cnt_cell):
+        cnt_line[0] = 0
+        cnt_line[1] = 0
+        for col in range(0, cnt_cell):
+            if not sh_pole[row][col] == '-':
+                if sh_pole[row][col] == sym_gamers[0]:
+                    cnt_line[0] += 1
+                else:
+                    cnt_line[1] += 1
+            if cnt_line[0] == cnt_cell:
+                return 0
+            elif cnt_line[1] == cnt_cell:
+                return 1
+    # проверка финала левый верх - правый низ
+    col = 0
+    cnt_line[0] = 0
+    cnt_line[1] = 0
+    for row in range(0, cnt_cell):
+        if not sh_pole[row][col] == '-':
+            if sh_pole[row][col] == sym_gamers[0]:
+                cnt_line[0] += 1
+            else:
+                cnt_line[1] += 1
+        if cnt_line[0] == cnt_cell:
+            return 0
+        elif cnt_line[1] == cnt_cell:
+            return 1
+        col += 1
+    # проверка финала правый верх - левый низ
+    col = cnt_cell-1
+    cnt_line[0] = 0
+    cnt_line[1] = 0
+    for row in range(0, cnt_cell):
+        if not sh_pole[row][col] == '-':
+            if sh_pole[row][col] == sym_gamers[0]:
+                cnt_line[0] += 1
+            else:
+                cnt_line[1] += 1
+        if cnt_line[0] == cnt_cell:
+            return 0
+        elif cnt_line[1] == cnt_cell:
+            return 1
+        col -= 1
+    return -1
+
+cnt_cell = 3 #количество ячеек в строке-столбце
+cur_gamer = False #игрок осуществляющий ход. False (0)-первый, True (1)-второй
+sym_gamers = ['X', '0'] #определение символов игроков
+name_gamers = ['Игрок 1', 'Игрок 2'] #имена игроков
+pole = [['-' for i in range(0, cnt_cell)] for x in range(0, cnt_cell)] #начальная инициализация игрового поля
+status = -1 #Индекс победившего игрока. -1 = победителя нет
+flag = True
+i = 0
+while count_empty(pole, cnt_cell) > 0 and flag: #цикл пока количество пустых полей больше 0 или игрок ввел 0 (приравнивается к НИЧЬЕ)
+    val_cell = 'X'
+    while not val_cell == '-':
+        print_curr_state(pole, cnt_cell)
+        print(f'Ход номер: {i+1}. Игрок: "{name_gamers[cur_gamer]}"')
+        column = input_cell('Введите номер столбца: ', cnt_cell)
+        if column == 0:
+            flag = False
+            break
+        row = input_cell('Введите номер строки: ', cnt_cell)
+        if row == 0:
+            flag = False
+            break
+        # проверяем, что ячейка еще не занята
+        val_cell = pole[row-1][column-1]
+        if not val_cell == '-':
+            print(f'Ячейка столбец=[{column}] строка=[{row}] имеет значение = {val_cell}')
+        else :
+            pole[row-1][column-1] = sym_gamers[cur_gamer]
+            break
+    status = status_game(pole, cnt_cell, sym_gamers)
+    if status >= 0: # один из игроков победил
+        print(f'На {i+1} ходу победил игрок "{name_gamers[status]}"')
+        print_curr_state(pole, cnt_cell, 'Финальное состояние:')
+        break
+
+    cur_gamer = False if cur_gamer else True
+    #print(f'{cur_gamer}')
+    i+=1
+if status == -1:
+    print(f'На {i} ходу зафиксирована НИЧЬЯ')
+    print_curr_state(pole, cnt_cell, 'Финальное состояние:')
